@@ -1,0 +1,122 @@
+diff --git a/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js b/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js
+index 8d6e03a..84d4d56 100644
+--- a/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js
++++ b/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js
+@@ -44,6 +44,19 @@ class JsonRpcClient {
+         this._forkCachePath = _forkCachePath;
+         this._cache = new Map();
+     }
++    addAccessList(method, rawResult) {
++        if (
++          method.startsWith('eth_getBlock') &&
++          rawResult &&
++          rawResult.transactions?.length
++        ) {
++          rawResult.transactions.forEach((t) => {
++            if (t.accessList == null) t.accessList = [];
++          });
++          return rawResult;
++        }
++      }
++
+     getNetworkId() {
+         return this._networkId;
+     }
+@@ -129,27 +142,35 @@ class JsonRpcClient {
+         const cacheKey = this._getCacheKey(method, params);
+         const cachedResult = this._getFromCache(cacheKey);
+         if (cachedResult !== undefined) {
+-            return cachedResult;
++          return cachedResult;
+         }
+         if (this._forkCachePath !== undefined) {
+-            const diskCachedResult = await this._getFromDiskCache(this._forkCachePath, cacheKey, tType);
+-            if (diskCachedResult !== undefined) {
+-                this._storeInCache(cacheKey, diskCachedResult);
+-                return diskCachedResult;
+-            }
++          const diskCachedResult = await this._getFromDiskCache(
++            this._forkCachePath,
++            cacheKey,
++            tType
++          );
++          if (diskCachedResult !== undefined) {
++            this._storeInCache(cacheKey, diskCachedResult);
++            return diskCachedResult;
++          }
+         }
+         const rawResult = await this._send(method, params);
+-        const decodedResult = decodeJsonRpcResponse_1.decodeJsonRpcResponse(rawResult, tType);
++        this.addAccessList(method, rawResult);
++        const decodedResult = (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(
++          rawResult,
++          tType
++        );
+         const blockNumber = getMaxAffectedBlockNumber(decodedResult);
+         if (this._canBeCached(blockNumber)) {
+-            this._storeInCache(cacheKey, decodedResult);
+-            if (this._forkCachePath !== undefined) {
+-                await this._storeInDiskCache(this._forkCachePath, cacheKey, rawResult);
+-            }
++          this._storeInCache(cacheKey, decodedResult);
++          if (this._forkCachePath !== undefined) {
++            await this._storeInDiskCache(this._forkCachePath, cacheKey, rawResult);
++          }
+         }
+         return decodedResult;
+-    }
+-    async _performBatch(batch, getMaxAffectedBlockNumber) {
++      }
++      async _performBatch(batch, getMaxAffectedBlockNumber) {
+         // Perform Batch caches the entire batch at once.
+         // It could implement something more clever, like caching per request
+         // but it's only used in one place, and those other requests aren't
+@@ -157,26 +178,36 @@ class JsonRpcClient {
+         const cacheKey = this._getBatchCacheKey(batch);
+         const cachedResult = this._getFromCache(cacheKey);
+         if (cachedResult !== undefined) {
+-            return cachedResult;
++          return cachedResult;
+         }
+         if (this._forkCachePath !== undefined) {
+-            const diskCachedResult = await this._getBatchFromDiskCache(this._forkCachePath, cacheKey, batch.map((b) => b.tType));
+-            if (diskCachedResult !== undefined) {
+-                this._storeInCache(cacheKey, diskCachedResult);
+-                return diskCachedResult;
+-            }
++          const diskCachedResult = await this._getBatchFromDiskCache(
++            this._forkCachePath,
++            cacheKey,
++            batch.map((b) => b.tType)
++          );
++          if (diskCachedResult !== undefined) {
++            this._storeInCache(cacheKey, diskCachedResult);
++            return diskCachedResult;
++          }
+         }
+         const rawResults = await this._sendBatch(batch);
+-        const decodedResults = rawResults.map((result, i) => decodeJsonRpcResponse_1.decodeJsonRpcResponse(result, batch[i].tType));
++        const decodedResults = rawResults.map((result, i) => {
++          this.addAccessList(batch[i].method, rawResults);
++          return (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(
++            result,
++            batch[i].tType
++          );
++        });
+         const blockNumber = getMaxAffectedBlockNumber(decodedResults);
+         if (this._canBeCached(blockNumber)) {
+-            this._storeInCache(cacheKey, decodedResults);
+-            if (this._forkCachePath !== undefined) {
+-                await this._storeInDiskCache(this._forkCachePath, cacheKey, rawResults);
+-            }
++          this._storeInCache(cacheKey, decodedResults);
++          if (this._forkCachePath !== undefined) {
++            await this._storeInDiskCache(this._forkCachePath, cacheKey, rawResults);
++          }
+         }
+         return decodedResults;
+-    }
++      }
+     async _send(method, params, isRetryCall = false) {
+         try {
+             return await this._httpProvider.request({ method, params });

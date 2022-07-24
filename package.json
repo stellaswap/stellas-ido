@@ -1,0 +1,41 @@
+{
+  "devDependencies": {
+    "@ethersproject/constants": "^5.4.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
+    "@openzeppelin/contracts": "^4.3.2",
+    "@uniswap/lib": "1.1.1",
+    "@uniswap/v2-core": "^1.0.1",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.0.0",
+    "ethers": "^5.0.0",
+    "ethers-providers": "^2.1.19",
+    "ethers-utils": "^2.1.11",
+    "hardhat": "^2.6.5",
+    "hardhat-contract-sizer": "^2.1.1"
+  },
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "cleanx": "npx hardhat clean",
+    "size": "npx hardhat size-contracts",
+    "clean": "rm -r artifacts cache",
+    "hh": "hardhat"
+  },
+  "dependencies": {
+    "@0xsequence/multicall": "^0.36.8",
+    "@nomiclabs/hardhat-etherscan": "3.0.3",
+    "@nomiclabs/hardhat-truffle5": "^2.0.2",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/contracts-upgradeable": "^4.4.1",
+    "dotenv": "^10.0.0",
+    "eth-multicall": "^1.4.0",
+    "eth-query": "^2.1.2",
+    "patch-package": "^6.4.7",
+    "postinstall-postinstall": "^2.1.0",
+    "prettier": "^2.5.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "web3": "^1.7.4"
+  },
+  "license": "MIT"
+}
