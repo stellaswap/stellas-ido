@@ -122,7 +122,7 @@ contract IDOSale is Ownable, ReentrancyGuard {
     uint256 endTime,
     uint256 sId
   ) external onlyOwner {
-    require(startTime == endTime, "Start and End Time cannot be the same");
+    require(startTime != endTime, "Start and End Time cannot be the same");
     SALE_INFO.S_TOKEN = sToken;
     SALE_INFO.B_TOKEN = bToken;
     SALE_INFO.XSTELLA_LOCKER = xStellaLocker;
